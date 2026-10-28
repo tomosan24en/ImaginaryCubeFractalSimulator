@@ -2,6 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <script type="importmap">
         {
             "imports": {
@@ -35,11 +36,17 @@
         projects.set("imaginary-H", new ImaginaryH());
         projects.set("imaginary-T", new ImaginaryT());
 
+        const buttons = Array.from(projects.keys()).map((value) => document.getElementById(value));
+        buttons.forEach((b) => {b.className = "btn btn-outline-secondary";});
+
         let selected = "imaginary-cone-fractal";
+        document.getElementById(selected).className = "btn btn-primary";
 
         projects.forEach((value, key) => {
             const projButton = document.getElementById(key);
             projButton.addEventListener("click", (event) => {
+                buttons.forEach((b) => {b.className = "btn btn-outline-secondary";});
+                projButton.className = "btn btn-primary";
                 projects.get(selected).dispose();
                 selected = key;
                 projects.get(selected).init(width, height, canvas);
@@ -52,10 +59,11 @@
 </head>
 <body>
     <canvas id="myCanvas"></canvas>
-    <div>
+    <div style="margin: 10px;">
         <button id="imaginary-cone-fractal">正四面体フラクタル</button>
         <button id="imaginary-H">H型イマジナリーキューブ</button>
         <button id="imaginary-T">T型イマジナリーキューブ</button>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
 </body>
 </html>
