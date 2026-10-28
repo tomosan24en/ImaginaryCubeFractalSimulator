@@ -1,0 +1,116 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+        <!-- "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.182.0/build/three.webgpu.js",
+          "three/webgpu": "https://cdn.jsdelivr.net/npm/three@0.182.0/build/three.webgpu.js",
+          "three/addons": "https://cdn.jsdelivr.net/npm/three@0.182.0/examples/jsm/"
+        } -->
+    <script type="importmap">
+      {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.181.0/build/three.module.js",
+            "three/webgpu": "https://cdn.jsdelivr.net/npm/three@0.181.0/build/three.webgpu.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.181.0/examples/jsm/"
+        }
+      }
+    </script>
+    <script type="module">
+      import * as THREE from "three/webgpu";
+      import { ConvexGeometry } from 'three/addons/geometries/ConvexGeometry.js';
+
+      // サイズを指定
+      const width = 600;
+      const height = 600;
+
+      const canvas = document.querySelector("#myCanvas");
+
+      // レンダラーを作成
+      const renderer = new THREE.WebGPURenderer({
+        canvas: canvas,
+      });
+      renderer.setPixelRatio(devicePixelRatio);
+      renderer.setSize(width, height);
+
+      renderer.setAnimationLoop(tick);
+
+      // シーンを作成
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x000000);
+
+      // カメラを作成
+      let rotX = 0;
+      let rotY = 0;
+      let mouseX = 0;
+      let mouseY = 0;
+      
+      document.addEventListener("mousemove", (event) => {
+        const canvasRect = canvas.getBoundingClientRect();
+        mouseX = event.pageX - canvasRect.x;
+        mouseY = event.pageY - canvasRect.y;
+      });
+
+      const camera = new THREE.OrthographicCamera(-800, 800, 800, -800, 0.01, 5000);
+      camera.position.set(0, 0, +1000);
+
+      // 箱を作成
+      const geometryBox = new THREE.EdgesGeometry(new THREE.BoxGeometry(400, 400, 400));
+      const materialBox = new THREE.LineBasicMaterial({
+        color: 0xffffff,
+        linewidth: 2,
+      });
+      const box = new THREE.LineSegments(geometryBox, materialBox);
+      box.position.set(200, 200, 200);
+      scene.add(box);
+
+      function createImaginaryCube(x, y, z, l) {
+        const points = [
+            new THREE.Vector3(x, y, z),
+            new THREE.Vector3(x+l, y+l, z),
+            new THREE.Vector3(x, y+l, z+l),
+            new THREE.Vector3(x+l, y, z+l),
+        ];
+        const geometry = new ConvexGeometry(points);
+        const material = new THREE.MeshNormalMaterial();
+        return new THREE.Mesh(geometry, material);
+      }
+
+      function createConeFractal(x, y, z, edge, depth, array) {
+        if (depth <= 1) {
+            array.push(createImaginaryCube(x, y, z, edge));
+            return;
+        }
+        createConeFractal(x, y, z, edge / 2, depth - 1, array);
+        createConeFractal(x + edge/2, y + edge / 2, z, edge / 2, depth - 1, array);
+        createConeFractal(x, y + edge / 2, z + edge / 2, edge / 2, depth - 1, array);
+        createConeFractal(x + edge / 2, y, z + edge / 2, edge / 2, depth - 1, array);
+      }
+
+      const cones = [];
+      createConeFractal(0, 0, 0, 400, 4, cones);
+      cones.forEach(element => {
+        scene.add(element);
+      });
+
+
+      // 毎フレーム時に実行されるループイベントです
+      function tick() {
+        const targetRotX = (mouseX / width) * 360 * 1.5;
+        const targetRotY = (1 - 2 * mouseY / height) * 90;
+        rotX += (targetRotX - rotX) * 0.4;
+        rotY += (targetRotY - rotY) * 0.4;
+        const radianX = -rotX * Math.PI / 180;
+        const radianY = -rotY * Math.PI / 180;
+        camera.position.x = 1000 * Math.sin(radianX) * Math.cos(radianY);
+        camera.position.y = 1000 * Math.sin(radianY);
+        camera.position.z = 1000 * Math.cos(radianX) * Math.cos(radianY);
+        camera.lookAt(new THREE.Vector3(200, 200, 200));
+        renderer.render(scene, camera); // レンダリング
+      }
+    </script>
+  </head>
+  <body>
+    <canvas id="myCanvas"></canvas>
+  </body>
+</html>
